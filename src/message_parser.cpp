@@ -20,10 +20,7 @@ public:
 
   bool errorOccurred() const override { return m_errorFlag; }
 
-  size_t readCount() const override
-  {
-    return m_errorFlag ? 0 : std::min(m_offset, m_input.size());
-  }
+  size_t readCount() const override { return m_errorFlag ? 0 : std::min(m_offset, m_input.size()); }
 
   std::unique_ptr<Message> parse() override
   {
@@ -108,15 +105,21 @@ private:
       encodings.emplace_back(kind);
     }
 
-    return std::unique_ptr<Message>(
-      new SetEncodingsRequest(std::move(encodings)));
+    return std::unique_ptr<Message>(new SetEncodingsRequest(std::move(encodings)));
   }
 
   std::unique_ptr<Message> parseFramebufferUpdateRequest()
   {
-    assert(false);
+    if (remaining() < 9)
+      return nullptr;
 
-    return nullptr;
+    const std::uint8_t incremental = readU8();
+    const std::uint16_t x = readU16();
+    const std::uint16_t y = readU16();
+    const std::uint16_t w = readU16();
+    const std::uint16_t h = readU16();
+
+    return std::unique_ptr<Message>(new FramebufferUpdateRequest(incremental, x, y, w, h));
   }
 
   std::unique_ptr<Message> parseKeyEvent()
@@ -140,10 +143,7 @@ private:
     return nullptr;
   }
 
-  char peek(size_t relativeOffset) const noexcept
-  {
-    return m_input[m_offset + relativeOffset];
-  }
+  char peek(size_t relativeOffset) const noexcept { return m_input[m_offset + relativeOffset]; }
 
   size_t remaining() const noexcept
   {

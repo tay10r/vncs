@@ -11,6 +11,8 @@ add_library(vncs
   include/vncs/server.hpp
   include/vncs/app.hpp
   include/vncs/app_factory.hpp
+  include/vncs/framebuffer_update.hpp
+  src/app.cpp
   src/client.hpp
   src/client.cpp
   src/client_list.cpp
@@ -23,7 +25,9 @@ add_library(vncs
   src/string_view.cpp
   src/server.cpp
   src/null_security.hpp
-  src/null_security.cpp)
+  src/null_security.cpp
+  src/binary_writer.hpp
+  src/binary_writer.cpp)
 
 target_link_libraries(vncs
   PUBLIC
@@ -34,6 +38,8 @@ target_include_directories(vncs
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${uv_INCLUDE_DIRS}")
 
-add_executable(main main.cpp)
+add_executable(vncs_example example.cpp)
 
-target_link_libraries(main PRIVATE glfw vncs)
+target_link_libraries(vncs_example PRIVATE vncs)
+
+set_target_properties(vncs_example PROPERTIES OUTPUT_NAME example)

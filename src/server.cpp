@@ -6,10 +6,6 @@
 
 namespace vncs {
 
-Server::Server(AppFactory& appFactory)
-  : Server(uv_default_loop(), appFactory)
-{}
-
 Server::Server(uv_loop_t* loop, AppFactory& appFactory)
   : m_appFactory(appFactory)
 {
@@ -56,8 +52,7 @@ Server::onNewConnection(uv_stream_t* server_stream, int status)
 
   uv_loop_t* loop = uv_handle_get_loop((uv_handle_t*)server_stream);
 
-  Client* client =
-    new Client(loop, server->m_appFactory.createApp(), server->m_clientList);
+  Client* client = new Client(loop, server->m_appFactory.createApp(), server->m_clientList);
 
   if (!client->initApp()) {
     client->closeAndDelete();

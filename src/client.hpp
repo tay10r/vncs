@@ -11,6 +11,7 @@
 
 namespace vncs {
 
+class FramebufferUpdateRequest;
 class StringView;
 
 class ClientState
@@ -30,10 +31,7 @@ public:
 
     bool errorOccurred;
 
-    static ReadResult ok(size_t readSize)
-    {
-      return ReadResult{ readSize, false };
-    }
+    static ReadResult ok(size_t readSize) { return ReadResult{ readSize, false }; }
 
     static ReadResult error() { return ReadResult{ 0, true }; }
   };
@@ -59,9 +57,7 @@ protected:
 class Client final
 {
 public:
-  Client(uv_loop_t* loop,
-         std::unique_ptr<App>&& app,
-         const std::shared_ptr<ClientList>& clientList);
+  Client(uv_loop_t* loop, std::unique_ptr<App>&& app, const std::shared_ptr<ClientList>& clientList);
 
   bool initApp();
 
@@ -81,6 +77,10 @@ public:
 
   void makeExclusive();
 
+  bool sendRawData(std::string&& data);
+
+  void framebufferUpdateRequest(const FramebufferUpdateRequest& request);
+
 private:
   friend ClientState;
 
@@ -91,8 +91,6 @@ private:
   static void onRead(uv_stream_t*, ssize_t, const uv_buf_t*);
 
   static std::unique_ptr<Security> createDefaultSecurity();
-
-  bool sendRawData(std::string&& data);
 
 private:
   uv_tcp_t m_client;

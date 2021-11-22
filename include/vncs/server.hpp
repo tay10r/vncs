@@ -13,8 +13,6 @@ class AppFactory;
 class Server final
 {
 public:
-  Server(AppFactory& app_factory);
-
   Server(uv_loop_t* loop, AppFactory& app_factory);
 
   ~Server();

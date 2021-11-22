@@ -29,8 +29,6 @@ onClose(uv_handle_t* handle)
 std::string
 u32ToBinaryString(std::uint32_t n)
 {
-  using u32 = std::uint32_t;
-
   using uchar = unsigned char;
 
   const uchar buf[4]{ uchar(n >> 24), uchar(n >> 16), uchar(n >> 8), uchar(n) };
@@ -48,10 +46,7 @@ u32ToBinaryString(std::uint32_t n)
 std::string
 u16ToBinaryString(std::uint16_t n)
 {
-  using u16 = std::uint32_t;
-
   using uchar = unsigned char;
-
   std::string out(size_t(2), ' ');
   out[0] = uchar(n >> 8);
   out[1] = uchar(n);
@@ -61,16 +56,9 @@ u16ToBinaryString(std::uint16_t n)
 class WriteOperation final
 {
 public:
-  static WriteOperation* create(std::string&& data)
-  {
-    return new WriteOperation(std::move(data));
-  }
+  static WriteOperation* create(std::string&& data) { return new WriteOperation(std::move(data)); }
 
-  bool execute(uv_stream_t* stream)
-  {
-    return uv_write(
-             &m_handle, stream, &m_buffer, 1, &WriteOperation::onWrite) == 0;
-  }
+  bool execute(uv_stream_t* stream) { return uv_write(&m_handle, stream, &m_buffer, 1, &WriteOperation::onWrite) == 0; }
 
 private:
   WriteOperation(std::string&& data)
@@ -85,8 +73,7 @@ private:
 
   static void onWrite(uv_write_t* handle, int)
   {
-    WriteOperation* op =
-      (WriteOperation*)uv_handle_get_data((uv_handle_t*)handle);
+    WriteOperation* op = (WriteOperation*)uv_handle_get_data((uv_handle_t*)handle);
 
     delete op;
   }
@@ -104,9 +91,18 @@ class EstablishedClientState;
 class MessageHandler final : public MessageVisitor
 {
 public:
-  void visit(const SetPixelFormatRequest&);
+  MessageHandler(Client& client)
+    : m_client(client)
+  {}
+
+  void visit(const SetPixelFormatRequest&) override {}
+
+  void visit(const SetEncodingsRequest&) override {}
+
+  void visit(const FramebufferUpdateRequest& request) override { m_client.framebufferUpdateRequest(request); }
 
 private:
+  Client& m_client;
 };
 
 class EstablishedClientState final : public ClientState
@@ -114,8 +110,7 @@ class EstablishedClientState final : public ClientState
 public:
   ReadResult read(const StringView& inputBuffer, Client& client) override
   {
-    std::unique_ptr<MessageParser> messageParser =
-      MessageParser::create(inputBuffer);
+    std::unique_ptr<MessageParser> messageParser = MessageParser::create(inputBuffer);
 
     std::unique_ptr<Message> message = messageParser->parse();
 
@@ -128,12 +123,12 @@ public:
 
     std::cout << "got message: " << messageParser->readCount() << std::endl;
 
-    (void)client;
+    MessageHandler messageHandler(client);
+
+    message->accept(messageHandler);
 
     return ReadResult::ok(messageParser->readCount());
   }
-
-private:
 };
 
 class ClientInitReader final : public ClientState
@@ -159,9 +154,7 @@ public:
 private:
   void sendServerInit(Client& client)
   {
-    const PixelFormat pixelFormat{
-      32, 24, false, true, 255, 255, 255, 16, 8, 0
-    };
+    const PixelFormat pixelFormat{ 32, 24, false, true, 255, 255, 255, 16, 8, 0 };
 
     const App::Info info = client.appInfo();
 
@@ -197,8 +190,7 @@ public:
         break;
     }
 
-    sendSecurityResult(client,
-                       Error{ "Encryption/Authentication not supported." });
+    sendSecurityResult(client, Error{ "Encryption/Authentication not supported." });
 
     return ReadResult{ 0, true };
   }
@@ -214,8 +206,7 @@ public:
     if (inputBuffer.size() < 12)
       return ReadResult{ 0, false };
 
-    if ((inputBuffer[0] != 'R') || (inputBuffer[1] != 'F') ||
-        (inputBuffer[2] != 'B'))
+    if ((inputBuffer[0] != 'R') || (inputBuffer[1] != 'F') || (inputBuffer[2] != 'B'))
       return error();
 
     std::string majorVerStr = subString(inputBuffer, 4, 3);
@@ -308,9 +299,7 @@ ClientState::sendRawData(Client& client, std::string&& data)
   return client.sendRawData(std::move(data));
 }
 
-Client::Client(uv_loop_t* loop,
-               std::unique_ptr<App>&& app,
-               const std::shared_ptr<ClientList>& clientList)
+Client::Client(uv_loop_t* loop, std::unique_ptr<App>&& app, const std::shared_ptr<ClientList>& clientList)
   : m_app(std::move(app))
   , m_clientList(clientList)
 {
@@ -347,6 +336,12 @@ Client::appInfo()
   return m_app->info();
 }
 
+void
+Client::framebufferUpdateRequest(const FramebufferUpdateRequest& req)
+{
+  m_app->framebufferUpdateRequest(*this, bool(req.incremental()), req.x(), req.y(), req.w(), req.h());
+}
+
 bool
 Client::accept(uv_stream_t* server_stream)
 {
@@ -359,8 +354,7 @@ Client::accept(uv_stream_t* server_stream)
 bool
 Client::startReading()
 {
-  return uv_read_start(
-           (uv_stream_t*)&m_client, &Client::allocBuffer, &Client::onRead) == 0;
+  return uv_read_start((uv_stream_t*)&m_client, &Client::allocBuffer, &Client::onRead) == 0;
 }
 
 bool
@@ -408,25 +402,22 @@ Client::onRead(uv_stream_t* stream, ssize_t readSize, const uv_buf_t*)
 
   client->m_readSize += readSize;
 
-  const std::string inputString =
-    client->m_security->Decrypt(client->m_buffer, client->m_readSize);
+  const std::string inputString = client->m_security->Decrypt(client->m_buffer, client->m_readSize);
 
   const StringView inputBuffer(inputString.data(), inputString.size());
 
-  const ClientState::ReadResult result =
-    client->m_clientState->read(inputBuffer, *client);
+  const ClientState::ReadResult result = client->m_clientState->read(inputBuffer, *client);
 
   if (result.errorOccurred) {
     client->closeAndDelete();
     return;
   }
 
-  size_t clippedReadSize = std::min(result.readSize, client->m_buffer.size());
+  const size_t clippedReadSize = std::min(result.readSize, client->m_buffer.size());
 
   std::cout << "clipping: " << clippedReadSize << std::endl;
 
-  client->m_buffer.erase(client->m_buffer.begin(),
-                         client->m_buffer.begin() + clippedReadSize);
+  client->m_buffer.erase(client->m_buffer.begin(), client->m_buffer.begin() + clippedReadSize);
 
   client->m_readSize -= clippedReadSize;
 }

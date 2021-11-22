@@ -9,6 +9,7 @@ namespace vncs {
 
 class SetPixelFormatRequest;
 class SetEncodingsRequest;
+class FramebufferUpdateRequest;
 
 class MessageVisitor
 {
@@ -18,6 +19,8 @@ public:
   virtual void visit(const SetPixelFormatRequest&) = 0;
 
   virtual void visit(const SetEncodingsRequest&) = 0;
+
+  virtual void visit(const FramebufferUpdateRequest&) = 0;
 };
 
 class Message
@@ -34,10 +37,7 @@ class MessageTempl : public Message
 public:
   virtual ~MessageTempl() = default;
 
-  virtual void accept(MessageVisitor& visitor) const override
-  {
-    visitor.visit(*static_cast<const Derived*>(this));
-  }
+  virtual void accept(MessageVisitor& visitor) const override { visitor.visit(*static_cast<const Derived*>(this)); }
 };
 
 class SetPixelFormatRequest final : public MessageTempl<SetPixelFormatRequest>
@@ -60,13 +60,39 @@ public:
     : m_encodings(std::move(encodings))
   {}
 
-  const std::vector<EncodingKind>& encodings() const noexcept
-  {
-    return m_encodings;
-  }
+  const std::vector<EncodingKind>& encodings() const noexcept { return m_encodings; }
 
 private:
   std::vector<EncodingKind> m_encodings;
+};
+
+class FramebufferUpdateRequest final : public MessageTempl<FramebufferUpdateRequest>
+{
+public:
+  FramebufferUpdateRequest(std::uint8_t incremental, std::uint16_t x, std::uint16_t y, std::uint16_t w, std::uint16_t h)
+    : m_incremental(incremental)
+    , m_x(x)
+    , m_y(y)
+    , m_w(w)
+    , m_h(h)
+  {}
+
+  std::uint8_t incremental() const noexcept { return m_incremental; }
+
+  std::uint16_t x() const noexcept { return m_x; }
+
+  std::uint16_t y() const noexcept { return m_y; }
+
+  std::uint16_t w() const noexcept { return m_w; }
+
+  std::uint16_t h() const noexcept { return m_h; }
+
+private:
+  std::uint8_t m_incremental = 0;
+  std::uint16_t m_x = 0;
+  std::uint16_t m_y = 0;
+  std::uint16_t m_w = 0;
+  std::uint16_t m_h = 0;
 };
 
 } // namespace vncs
