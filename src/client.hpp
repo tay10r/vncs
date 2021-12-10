@@ -83,6 +83,8 @@ public:
 
   void keyEvent(bool down, std::uint32_t key);
 
+  void pointerEvent(std::uint8_t buttonMask, std::uint16_t x, std::uint16_t y);
+
 private:
   friend ClientState;
 

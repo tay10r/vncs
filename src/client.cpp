@@ -104,6 +104,11 @@ public:
 
   void visit(const KeyEvent& keyEvent) override { m_client.keyEvent(keyEvent.down(), keyEvent.key()); }
 
+  void visit(const PointerEvent& pointerEvent) override
+  {
+    m_client.pointerEvent(pointerEvent.buttonMask(), pointerEvent.x(), pointerEvent.y());
+  }
+
 private:
   Client& m_client;
 };
@@ -349,6 +354,12 @@ void
 Client::keyEvent(bool down, std::uint32_t key)
 {
   m_app->keyEvent(down, key);
+}
+
+void
+Client::pointerEvent(std::uint8_t buttonMask, std::uint16_t x, std::uint16_t y)
+{
+  m_app->pointerEvent(buttonMask, x, y);
 }
 
 bool

@@ -11,6 +11,7 @@ class SetPixelFormatRequest;
 class SetEncodingsRequest;
 class FramebufferUpdateRequest;
 class KeyEvent;
+class PointerEvent;
 
 class MessageVisitor
 {
@@ -24,6 +25,8 @@ public:
   virtual void visit(const FramebufferUpdateRequest&) = 0;
 
   virtual void visit(const KeyEvent&) = 0;
+
+  virtual void visit(const PointerEvent&) = 0;
 };
 
 class Message
@@ -114,6 +117,29 @@ private:
   bool m_downFlag = false;
 
   std::uint32_t m_key = 0;
+};
+
+class PointerEvent final : public MessageTempl<PointerEvent>
+{
+public:
+  PointerEvent(std::uint8_t buttonMask, std::uint16_t x, std::uint16_t y)
+    : m_buttonMask(buttonMask)
+    , m_x(x)
+    , m_y(y)
+  {}
+
+  std::uint8_t buttonMask() const noexcept { return m_buttonMask; }
+
+  std::uint16_t x() const noexcept { return m_x; }
+
+  std::uint16_t y() const noexcept { return m_y; }
+
+private:
+  std::uint8_t m_buttonMask = 0;
+
+  std::uint16_t m_x = 0;
+
+  std::uint16_t m_y = 0;
 };
 
 } // namespace vncs

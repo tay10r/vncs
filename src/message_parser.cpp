@@ -138,9 +138,14 @@ private:
 
   std::unique_ptr<Message> parsePointerEvent()
   {
-    assert(false);
+    if (remaining() < 5)
+      return nullptr;
 
-    return nullptr;
+    const std::uint8_t buttonMask = readU8();
+    const std::uint16_t x = readU16();
+    const std::uint16_t y = readU16();
+
+    return std::unique_ptr<Message>(new PointerEvent(buttonMask, x, y));
   }
 
   std::unique_ptr<Message> parseClientCutTextEvent()
@@ -150,7 +155,10 @@ private:
     return nullptr;
   }
 
-  char peek(size_t relativeOffset) const noexcept { return m_input[m_offset + relativeOffset]; }
+  std::uint8_t peek(size_t relativeOffset) const noexcept
+  {
+    return static_cast<std::uint8_t>(m_input[m_offset + relativeOffset]);
+  }
 
   size_t remaining() const noexcept
   {
@@ -166,29 +174,29 @@ private:
 
   void setErrorState() { m_errorFlag = true; }
 
-  size_t readU8()
+  std::uint8_t readU8()
   {
-    size_t c = size_t(peek(0));
+    std::uint8_t c = peek(0);
     advance(1);
     return c;
   }
 
-  size_t readU16()
+  std::uint16_t readU16()
   {
-    size_t c = 0;
-    c |= size_t(peek(0)) << 8;
-    c |= size_t(peek(1));
+    std::uint16_t c = 0;
+    c |= std::uint16_t(peek(0)) << 8;
+    c |= std::uint16_t(peek(1));
     advance(2);
     return c;
   }
 
-  size_t readU32()
+  std::uint32_t readU32()
   {
-    size_t c = 0;
-    c |= size_t(peek(0)) << 24;
-    c |= size_t(peek(1)) << 16;
-    c |= size_t(peek(2)) << 8;
-    c |= size_t(peek(3));
+    std::uint32_t c = 0;
+    c |= std::uint32_t(peek(0)) << 24;
+    c |= std::uint32_t(peek(1)) << 16;
+    c |= std::uint32_t(peek(2)) << 8;
+    c |= std::uint32_t(peek(3));
     advance(4);
     return c;
   }

@@ -67,6 +67,13 @@ public:
   {
     std::cout << "key event: " << (pressed ? "'press'" : "'release'") << " " << char32_t(key) << std::endl;
   }
+
+  void pointerEvent(std::uint8_t buttonMask, std::uint16_t x, std::uint16_t y) override
+  {
+    (void)buttonMask;
+
+    std::cout << "pointer event: " << x << ' ' << y << std::endl;
+  }
 };
 
 class ExampleAppFactory final : public vncs::AppFactory

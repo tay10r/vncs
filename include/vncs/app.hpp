@@ -39,6 +39,8 @@ public:
 
   virtual void keyEvent(bool pressed, std::uint32_t key) = 0;
 
+  virtual void pointerEvent(std::uint8_t buttonMask, std::uint16_t x, std::uint16_t y) = 0;
+
 protected:
   static void sendFramebufferUpdate(Client& client,
                                     std::uint16_t x,
