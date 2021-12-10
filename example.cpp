@@ -62,6 +62,11 @@ public:
 
     sendFramebufferUpdate(client, x0, y0, w, h, rgb.get());
   }
+
+  void keyEvent(bool pressed, std::uint32_t key) override
+  {
+    std::cout << "key event: " << (pressed ? "'press'" : "'release'") << " " << char32_t(key) << std::endl;
+  }
 };
 
 class ExampleAppFactory final : public vncs::AppFactory

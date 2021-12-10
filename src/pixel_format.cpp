@@ -1,30 +1,27 @@
 #include "pixel_format.hpp"
 
+#include "binary_writer.hpp"
+
 namespace vncs {
 
-std::string
-PixelFormat::toBinaryString() const
+BinaryWriter&
+operator<<(BinaryWriter& writer, const PixelFormat& pixelFormat)
 {
-  std::string str(size_t(16), '\0');
+  writer << pixelFormat.bitsPerPixel;
+  writer << pixelFormat.depth;
+  writer << pixelFormat.isBigEndian;
+  writer << pixelFormat.isTrueColor;
+  writer << pixelFormat.redMax;
+  writer << pixelFormat.greenMax;
+  writer << pixelFormat.blueMax;
+  writer << pixelFormat.redShift;
+  writer << pixelFormat.greenShift;
+  writer << pixelFormat.blueShift;
+  writer << uint8_t(0); // padding
+  writer << uint8_t(0); // padding
+  writer << uint8_t(0); // padding
 
-  str[0] = bitsPerPixel;
-  str[1] = depth;
-  str[2] = isBigEndian;
-  str[3] = isTrueColor;
-  str[4] = redMax >> 8;
-  str[5] = redMax;
-  str[6] = greenMax >> 8;
-  str[7] = greenMax;
-  str[8] = blueMax >> 8;
-  str[9] = blueMax;
-  str[10] = redShift;
-  str[11] = greenShift;
-  str[12] = blueShift;
-  str[13] = 0; // padding
-  str[14] = 0; // padding
-  str[15] = 0; // padding
-
-  return str;
+  return writer;
 }
 
 } // namespace vncs

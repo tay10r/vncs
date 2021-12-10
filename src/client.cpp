@@ -1,5 +1,6 @@
 #include "client.hpp"
 
+#include "binary_writer.hpp"
 #include "message_parser.hpp"
 #include "messages.hpp"
 #include "null_security.hpp"
@@ -101,6 +102,8 @@ public:
 
   void visit(const FramebufferUpdateRequest& request) override { m_client.framebufferUpdateRequest(request); }
 
+  void visit(const KeyEvent& keyEvent) override { m_client.keyEvent(keyEvent.down(), keyEvent.key()); }
+
 private:
   Client& m_client;
 };
@@ -160,13 +163,13 @@ private:
 
     std::ostringstream stream;
 
-    stream << u16ToBinaryString(info.width);
-    stream << u16ToBinaryString(info.height);
+    BinaryWriter writer(stream);
 
-    stream << pixelFormat.toBinaryString();
-
-    stream << u32ToBinaryString(info.name.size());
-    stream << info.name;
+    writer << info.width;
+    writer << info.height;
+    writer << pixelFormat;
+    writer << uint32_t(info.name.size());
+    writer << info.name;
 
     sendRawData(client, stream.str());
   }
@@ -340,6 +343,12 @@ void
 Client::framebufferUpdateRequest(const FramebufferUpdateRequest& req)
 {
   m_app->framebufferUpdateRequest(*this, bool(req.incremental()), req.x(), req.y(), req.w(), req.h());
+}
+
+void
+Client::keyEvent(bool down, std::uint32_t key)
+{
+  m_app->keyEvent(down, key);
 }
 
 bool

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <string>
 
 #include <cstddef>
 #include <cstdint>
@@ -62,5 +63,12 @@ operator<<(BinaryWriter& writer, EncodingKind encodingKind);
 
 BinaryWriter&
 operator<<(BinaryWriter& writer, const RGBBufferView& rgb);
+
+inline BinaryWriter&
+operator<<(BinaryWriter& writer, const std::string& str)
+{
+  writer.write((const unsigned char*)str.data(), str.size());
+  return writer;
+}
 
 } // namespace vncs

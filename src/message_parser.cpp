@@ -124,9 +124,16 @@ private:
 
   std::unique_ptr<Message> parseKeyEvent()
   {
-    assert(false);
+    if (remaining() < 7)
+      return nullptr;
 
-    return nullptr;
+    const bool downFlag = readU8();
+
+    readU8(); // Padding
+
+    const std::uint32_t key = readU32();
+
+    return std::unique_ptr<Message>(new KeyEvent(downFlag, key));
   }
 
   std::unique_ptr<Message> parsePointerEvent()

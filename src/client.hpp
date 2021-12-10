@@ -81,6 +81,8 @@ public:
 
   void framebufferUpdateRequest(const FramebufferUpdateRequest& request);
 
+  void keyEvent(bool down, std::uint32_t key);
+
 private:
   friend ClientState;
 

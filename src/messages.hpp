@@ -10,6 +10,7 @@ namespace vncs {
 class SetPixelFormatRequest;
 class SetEncodingsRequest;
 class FramebufferUpdateRequest;
+class KeyEvent;
 
 class MessageVisitor
 {
@@ -21,6 +22,8 @@ public:
   virtual void visit(const SetEncodingsRequest&) = 0;
 
   virtual void visit(const FramebufferUpdateRequest&) = 0;
+
+  virtual void visit(const KeyEvent&) = 0;
 };
 
 class Message
@@ -93,6 +96,24 @@ private:
   std::uint16_t m_y = 0;
   std::uint16_t m_w = 0;
   std::uint16_t m_h = 0;
+};
+
+class KeyEvent final : public MessageTempl<KeyEvent>
+{
+public:
+  KeyEvent(bool downFlag, std::uint32_t key)
+    : m_downFlag(downFlag)
+    , m_key(key)
+  {}
+
+  bool down() const noexcept { return m_downFlag; }
+
+  std::uint32_t key() const noexcept { return m_key; }
+
+private:
+  bool m_downFlag = false;
+
+  std::uint32_t m_key = 0;
 };
 
 } // namespace vncs

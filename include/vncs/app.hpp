@@ -17,9 +17,9 @@ public:
   {
     std::string name;
 
-    unsigned int width = 0;
+    std::uint16_t width = 0;
 
-    unsigned int height = 0;
+    std::uint16_t height = 0;
   };
 
   virtual ~App() = default;
@@ -36,6 +36,8 @@ public:
                                         std::uint16_t y,
                                         std::uint16_t w,
                                         std::uint16_t h) = 0;
+
+  virtual void keyEvent(bool pressed, std::uint32_t key) = 0;
 
 protected:
   static void sendFramebufferUpdate(Client& client,

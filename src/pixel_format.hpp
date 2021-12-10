@@ -1,8 +1,10 @@
 #pragma once
 
-#include <string>
+#include <cstdint>
 
 namespace vncs {
+
+class BinaryWriter;
 
 struct PixelFormat final
 {
@@ -18,8 +20,9 @@ struct PixelFormat final
   std::uint8_t redShift;
   std::uint8_t greenShift;
   std::uint8_t blueShift;
-
-  std::string toBinaryString() const;
 };
+
+BinaryWriter&
+operator<<(BinaryWriter& writer, const PixelFormat&);
 
 } // namespace vncs
