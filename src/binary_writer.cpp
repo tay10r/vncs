@@ -48,10 +48,10 @@ operator<<(BinaryWriter& writer, const RGBBufferView& rgb)
   const uint32_t size = std::uint32_t(rgb.w) * std::uint32_t(rgb.h);
 
   for (std::uint32_t i = 0; i < size; i++) {
-    writer << std::uint8_t(0);
     writer << rgb.data[(i * 3) + 0];
     writer << rgb.data[(i * 3) + 1];
     writer << rgb.data[(i * 3) + 2];
+    writer << std::uint8_t(0);
   }
 
   return writer;
